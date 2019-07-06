@@ -1,3 +1,6 @@
+const MIDI_CC_PARAM_CLASS = "midiccparam";
+const MIDI_CC_TOTAL_CLASS = "midicctotal";
+
 var midi = null;          // global MIDIAccess object
 var midiOutPorts = null;
 var selectedMidiPort = null;
@@ -36,7 +39,6 @@ function buildSetupPanel(midiAccess) {
         selectedMidiPort = midiOutPorts[event.target.value]; 
         console.log(selectedMidiPort); 
         sendSysexDump();
-        //testTone();   // this is interacting with the sysex change - need to address this longterm, because I think it's useful, but disabled for now
     };
     
     portSelectLabel.appendChild(portSelecter);
@@ -48,7 +50,7 @@ function buildSetupPanel(midiAccess) {
             optioner.setAttribute("value", idx);
             portSelecter.appendChild(optioner);
         }, this);
-    selectedMidiPort = midiOutPorts[0]; // TODO: check there's not a more idiomatic way of doing this
+    selectedMidiPort = midiOutPorts[0]; 
 
     // Channel selection
     let channelSelectLabel = document.createElement("label");
@@ -60,7 +62,6 @@ function buildSetupPanel(midiAccess) {
         selectedMidiChannel = parseInt(event.target.value); 
         console.log(selectedMidiChannel); 
         sendSysexDump();
-        //testTone();  // this is interacting with the sysex change - need to address this longterm, because I think it's useful, but disabled for now
     };
     channelSelectLabel.appendChild(channelSelector);
     former.appendChild(channelSelectLabel);
@@ -72,30 +73,58 @@ function buildSetupPanel(midiAccess) {
     }
     selectedMidiChannel = 0;
 
-    
-    
     document.getElementById("midiSetup").appendChild(former);
 }
 
-function setupParameterControls() {
-    for (let sysexControl of document.getElementsByClassName("midiccparam")) {
-        sysexControl.oninput = handleValueChange;
+function tryAttachParameterChangeHandler(ccControl){
+    // TODO: work down full list of useful change events
+    if("oninput" in ccControl){
+        ccControl.oninput = handleValueChange;
+        return true;
+    }else if("onchange" in ccControl){
+        ccControl.onchange = handleValueChange;
+        return true;
     }
-    // for(let sysexControl of document.getElementsByClassName("sysexParameterBitswitch")) {
-    //     sysexControl.onchange = handleValueChange; // usually checkboxes and they don't have oninputs
-    // }
+    return false;
+}
+
+function setupParameterControls() {
+    let standardControls = [MIDI_CC_PARAM_CLASS, MIDI_CC_TOTAL_CLASS];
+    for(ccClass of standardControls){
+        for (let ccControl of document.getElementsByClassName(ccClass)) {
+            if(!tryAttachParameterChangeHandler(ccControl)){
+                console.log(`Couldn't attach parameter watcher to ${ccClass} control:`)
+                console.log(ccControl);
+            }
+        }
+    }
 }
 
 function handleValueChange(event){
     if (selectedMidiChannel != null && selectedMidiPort != null) {
         let ele = event.target;
-        if (event.target.classList.contains("midiccparam")) {
+        if (event.target.classList.contains(MIDI_CC_PARAM_CLASS)) {
             let messageChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : selectedMidiChannel;
             let ccLsb = parseInt(ele.dataset.cclsb);
             let ccValue = parseInt(ele.value);
 
+            // TODO: Handle 14-bit parameters
+            
             // send lsb/single-byte
-            sendCcMessage({channel: messageChannel, ccNumber: ccLsb, value: ccValue & 0x7f})
+            sendCcMessage({channel: messageChannel, ccNumber: ccLsb, value: ccValue & 0x7f});
+        }else if (event.target.classList.contains(MIDI_CC_TOTAL_CLASS)){
+            // we need to total everything for this change's cc number and channel then send it all at once
+            // currently, for simplicity, this type only supports single byte cc
+            let ccLsb = parseInt(ele.dataset.cclsb);
+            let overrideMidiChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : null;
+            
+            let toTotal = [...document.getElementsByClassName(MIDI_CC_TOTAL_CLASS)]
+                .filter(
+                    x => parseInt(x.dataset.cclsb) === ccLsb && ((overrideMidiChannel === null && !x.dataset.midichannel) || overrideMidiChannel === parseInt(x.dataset.midichannel) - 1));
+            let ccSum = toTotal.reduce((sum, x) => sum + ("checked" in x ? (x.checked ? parseInt(x.value) : 0) : parseInt(value)), 0);
+            
+            let messageChannel = overrideMidiChannel || selectedMidiChannel;
+            sendCcMessage({channel: messageChannel, ccNumber: ccLsb, value: ccSum & 0x7f});
         }
     }
 }
@@ -103,8 +132,8 @@ function handleValueChange(event){
 function sendCcMessage(options){
     let paramChangeMessage = [
         0xb0 | (options.channel & 0x0f),
-        options.ccNumber & 0xff,
-        options.value
+        options.ccNumber & 0x7f,
+        options.value & 0x7f
     ];
     console.log(paramChangeMessage);
     selectedMidiPort.send(paramChangeMessage);
@@ -114,5 +143,7 @@ function storeOutputs(midiAccess) {
     midiOutPorts = new Array(...midiAccess.outputs.values());
 }
 
-// Get MIDI
-navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure)
+function ccynthmataInit(){
+    // Get MIDI and kick everything else off
+    navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure)
+}

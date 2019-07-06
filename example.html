@@ -5,7 +5,7 @@
     <title>ccynthmata: example</title>
     <script src="./ccynthmata.js" type="text/javascript"></script>
 </head>
-<body>
+<body onload="ccynthmataInit()">
     <h1>Volca Drum Patch Editor</h1>
     <div class="controlitemgroup" id="midiSetup">
         <h3>Midi Device Setup</h3>
@@ -19,12 +19,66 @@
             max="127" min="0" type="range" />
     </div>
     <div class="controller">
-            <label for="p1pitch1">Pitch 2</label>
+        <label for="p1pitch1">Pitch 2</label>
+        <input 
+            class="midiccparam" id="p1pitch1"  
+            data-midiChannel="1" data-cclsb="27"
+            max="127" min="0" type="range" />
+    </div>
+
+    <div class="controller">
+        <div>
+            <label for="p1select1wavesine">Sine</label>
             <input 
-                class="midiccparam" id="p1pitch1"  
-                data-midiChannel="1" data-cclsb="27"
-                max="127" min="0" type="range" />
+                type="radio" name="p1select1wave" value="0" checked
+                class="midicctotal" id="p1select1wavesine"
+                data-midiChannel="1" data-cclsb="14"/>
+            <label for="p1select1wavesaw">Saw</label>
+            <input 
+                type="radio" name="p1select1wave" value="26" 
+                class="midicctotal" id="p1select1wavesaw"
+                data-midiChannel="1" data-cclsb="14"/>
+            <label for="p1select1wavenoise">Noise</label>
+            <input 
+                type="radio" name="p1select1wave" value="52" 
+                class="midicctotal" id="p1select1wavenoise"
+                data-midiChannel="1" data-cclsb="14"/>
         </div>
-    
+        <div>
+            <label for="p1select1modexp">Exp</label>
+            <input 
+                type="radio" name="p1select1mod" value="0" checked
+                class="midicctotal" id="p1select1modexp"
+                data-midiChannel="1" data-cclsb="14"/>
+            <label for="p1select1modtri">Tri</label>
+            <input 
+                type="radio" name="p1select1mod" value="9" 
+                class="midicctotal" id="p1select1modtri"
+                data-midiChannel="1" data-cclsb="14"/>
+            <label for="p1select1modrand">Random</label>
+            <input 
+                type="radio" name="p1select1mod" value="18" 
+                class="midicctotal" id="p1select1modrand"
+                data-midiChannel="1" data-cclsb="14"/>
+        </div>
+        <div>
+            <label for="p1select1envad">AD</label>
+            <input 
+                type="radio" name="p1select1env" value="0" checked
+                class="midicctotal" id="p1select1envad"
+                data-midiChannel="1" data-cclsb="14"/>
+            <label for="p1select1envexp">Exp</label>
+            <input 
+                type="radio" name="p1select1env" value="3" 
+                class="midicctotal" id="p1select1envexp"
+                data-midiChannel="1" data-cclsb="14"/>
+            <label for="p1select1envmulti">Multi</label>
+            <input 
+                type="radio" name="p1select1env" value="6" 
+                class="midicctotal" id="p1select1envmulti"
+                data-midiChannel="1" data-cclsb="14"/>
+        </div>
+    </div>
+
 </body>
 </html>
