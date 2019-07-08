@@ -29,10 +29,20 @@
                             type="radio" name="p1select1wave" value="26" 
                             class="midicctotal" id="p1select1wavesaw"
                             data-midiChannel="1" data-cclsb="14"/>
-                        <label for="p1select1wavenoise">Noise</label>
+                        <label for="p1select1wavenoisehp">Noise (HP)</label>
                         <input 
                             type="radio" name="p1select1wave" value="52" 
-                            class="midicctotal" id="p1select1wavenoise"
+                            class="midicctotal" id="p1select1wavenoisehp"
+                            data-midiChannel="1" data-cclsb="14"/>
+                        <label for="p1select1wavenoiselp">Noise (LP)</label>
+                        <input 
+                            type="radio" name="p1select1wave" value="77" 
+                            class="midicctotal" id="p1select1wavenoiselp"
+                            data-midiChannel="1" data-cclsb="14"/>
+                        <label for="p1select1wavenoisebp">Noise (BP)</label>
+                        <input 
+                            type="radio" name="p1select1wave" value="103" 
+                            class="midicctotal" id="p1select1wavenoisebp"
                             data-midiChannel="1" data-cclsb="14"/>
                     </div>
                     <div>
@@ -109,6 +119,13 @@
                         <input 
                             class="midiccparam" id="p1modrate1"  
                             data-midiChannel="1" data-cclsb="46"
+                            max="127" min="0" type="range" />
+                    </div>
+                    <div class="controller">
+                        <label for="p1modrate1">SelectTest</label>
+                        <input 
+                            class="midiccparam" id="p1modrate1"  
+                            data-midiChannel="1" data-cclsb="14"
                             max="127" min="0" type="range" />
                     </div>
                 </div>
