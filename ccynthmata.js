@@ -91,13 +91,18 @@ function tryAttachParameterChangeHandler(ccControl){
 }
 
 function setupParameterControls() {
-    
+    for(let ccControl of getCcElements()){
+        if(!tryAttachParameterChangeHandler(ccControl)){
+            console.log(`Couldn't attach parameter watcher to ${ccClass} control:`)
+            console.log(ccControl);
+        }
+    }
+}
+
+function* getCcElements(){
     for(ccClass of standardControls){
         for (let ccControl of document.getElementsByClassName(ccClass)) {
-            if(!tryAttachParameterChangeHandler(ccControl)){
-                console.log(`Couldn't attach parameter watcher to ${ccClass} control:`)
-                console.log(ccControl);
-            }
+            yield ccControl;
         }
     }
 }
@@ -157,6 +162,8 @@ function _sendCcMessage(options){
     console.log(paramChangeMessage);
     selectedMidiPort.send(paramChangeMessage);
 }
+
+
 
 function storeOutputs(midiAccess) {
     midiOutPorts = new Array(...midiAccess.outputs.values());
