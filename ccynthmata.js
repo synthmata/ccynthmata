@@ -1,6 +1,8 @@
 const MIDI_CC_PARAM_CLASS = "midiccparam";
 const MIDI_CC_TOTAL_CLASS = "midicctotal";
 
+const standardControls = [MIDI_CC_PARAM_CLASS, MIDI_CC_TOTAL_CLASS];
+
 var midi = null;          // global MIDIAccess object
 var midiOutPorts = null;
 var selectedMidiPort = null;
@@ -89,7 +91,7 @@ function tryAttachParameterChangeHandler(ccControl){
 }
 
 function setupParameterControls() {
-    let standardControls = [MIDI_CC_PARAM_CLASS, MIDI_CC_TOTAL_CLASS];
+    
     for(ccClass of standardControls){
         for (let ccControl of document.getElementsByClassName(ccClass)) {
             if(!tryAttachParameterChangeHandler(ccControl)){
@@ -100,36 +102,53 @@ function setupParameterControls() {
     }
 }
 
-function handleValueChange(event){
-    if (selectedMidiChannel != null && selectedMidiPort != null) {
-        let ele = event.target;
-        if (event.target.classList.contains(MIDI_CC_PARAM_CLASS)) {
-            let messageChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : selectedMidiChannel;
-            let ccLsb = parseInt(ele.dataset.cclsb);
-            let ccValue = parseInt(ele.value);
+function getCcElementDetails(ele){
+    if (ele.classList.contains(MIDI_CC_PARAM_CLASS)) {
+        //let messageChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : selectedMidiChannel;
+        let overrideMidiChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : undefined;
+        let ccLsb = parseInt(ele.dataset.cclsb);
+        let ccMsb = parseInt(ele.dataset.ccmsb);
+        let ccValue = parseInt(ele.value);
 
-            // TODO: Handle 14-bit parameters
-            
-            // send lsb/single-byte
-            sendCcMessage({channel: messageChannel, ccNumber: ccLsb, value: ccValue & 0x7f});
-        }else if (event.target.classList.contains(MIDI_CC_TOTAL_CLASS)){
-            // we need to total everything for this change's cc number and channel then send it all at once
-            // currently, for simplicity, this type only supports single byte cc
-            let ccLsb = parseInt(ele.dataset.cclsb);
-            let overrideMidiChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : null;
-            
-            let toTotal = [...document.getElementsByClassName(MIDI_CC_TOTAL_CLASS)]
-                .filter(
-                    x => parseInt(x.dataset.cclsb) === ccLsb && ((overrideMidiChannel === null && !x.dataset.midichannel) || overrideMidiChannel === parseInt(x.dataset.midichannel) - 1));
-            let ccSum = toTotal.reduce((sum, x) => sum + ("checked" in x ? (x.checked ? parseInt(x.value) : 0) : parseInt(value)), 0);
-            
-            let messageChannel = overrideMidiChannel || selectedMidiChannel;
-            sendCcMessage({channel: messageChannel, ccNumber: ccLsb, value: ccSum & 0x7f});
-        }
+        // TODO: Handle 14-bit parameters
+        
+        // send lsb/single-byte
+        return {channel: overrideMidiChannel, ccLsbNumber: ccLsb, ccMsbNumber: ccMsb, value: ccValue};
+    }else if (ele.classList.contains(MIDI_CC_TOTAL_CLASS)){
+        // we need to total everything for this change's cc number and channel then send it all at once
+        // currently, for simplicity, this type only supports single byte cc
+        let ccLsb = parseInt(ele.dataset.cclsb);
+        let overrideMidiChannel = ele.dataset.midichannel ? parseInt(ele.dataset.midichannel) - 1 : undefined;
+        
+        let toTotal = [...document.getElementsByClassName(MIDI_CC_TOTAL_CLASS)]
+            .filter(
+                x => parseInt(x.dataset.cclsb) === ccLsb && ((overrideMidiChannel === null && !x.dataset.midichannel) || overrideMidiChannel === parseInt(x.dataset.midichannel) - 1));
+        let ccSum = toTotal.reduce((sum, x) => sum + ("checked" in x ? (x.checked ? parseInt(x.value) : 0) : parseInt(value)), 0);
+        
+        return {channel: overrideMidiChannel, ccLsbNumber: ccLsb, value: ccSum & 0x7f};
+    }
+    else{
+        throw `unknown cc element class on ${ele}`;
     }
 }
 
-function sendCcMessage(options){
+function handleValueChange(event){
+    if (selectedMidiChannel != null && selectedMidiPort != null) {
+        let ele = event.target;
+        let ccElementDetails = getCcElementDetails(ele);
+        sendCcMessage(ccElementDetails);
+    }
+}
+
+function sendCcMessage(ccElementDetails){
+    let channel = ccElementDetails.channel === undefined ? selectedMidiChannel : ccElementDetails.channel;
+    if(ccElementDetails.ccMsbNumber !== undefined){
+        _sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccMsbNumber, value: (ccElementDetails.value >> 7) & 0x7f});
+    }
+    _sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccLsbNumber, value: ccElementDetails.value & 0x7f});
+}
+
+function _sendCcMessage(options){
     let paramChangeMessage = [
         0xb0 | (options.channel & 0x0f),
         options.ccNumber & 0x7f,
