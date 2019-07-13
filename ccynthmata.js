@@ -182,7 +182,6 @@ class Ccynthmata {
 
     collectPatch(){
         // collects all the parameters into an object; up to 17 keys: one for each channel and one for the user specified channel
-    
         let patchDetails = {};
         for(let ccElement of this.getCcElements()){
             let ccDetails = this.getCcElementDetails(ccElement);
@@ -201,7 +200,6 @@ class Ccynthmata {
             if(ccDetails.ccMsbNumber !== undefined){
                 patchDetails[channel][ccDetails.ccMsbNumber] = (ccDetails.value >> 7) & 0x7f;
             }
-            
         }
         return patchDetails;
     }
@@ -251,7 +249,6 @@ class Ccynthmata {
         }
     
         return Ccynthmata.packBytes(serializedRaw);
-    
     }
     
     static packBytes(unpackedBytes){
@@ -263,15 +260,48 @@ class Ccynthmata {
         if (unpackedBytes.length === 0){
             return [];
         }
-        let result = [unpackedBytes[0]];
-        for(let i = 1; i < unpackedBytes.length; i++){
-            let shift = i % 7;
-            if(shift !== 0){
-                result.push(unpackedBytes[i] >> shift)
+        let result = [];
+        let current = 0;
+        let prev = 0;
+        let shift;
+        for(let i = 0; i < unpackedBytes.length; i++){
+            if(unpackedBytes[i] > 127){
+                throw "Cannot pack values over 127 (0x7f)";
             }
-                
-            let mask = 0x7f >> (7 - shift);
-            result[result.length - 2] |= (unpackedBytes[i] & mask) << (8 - shift);
+            shift = i % 8;
+            if(shift == 0){
+                prev = unpackedBytes[i] & 0x7f;
+                continue;
+            }
+            current = (unpackedBytes[i] << (8 -shift)) & 0xff
+            result.push(current | prev);
+            prev = unpackedBytes[i] >> shift
+
+        }
+        result.push(prev);
+
+        return result;
+        
+    }
+
+    static unpackBytes(packedBytes){
+        let result = [];
+        let last = 0;
+        let current = 0;
+        for(let i = 0; i < packedBytes.length; i++){
+            let shift = i % 7;
+            let lowerMask = 0x7f >> shift;
+            let upperMask = (0xff80 >>  shift) & 0xff;
+            
+            if(i > 0 && shift == 0){
+                result.push(last)
+                last = 0;
+            }
+            current = (packedBytes[i] & lowerMask) << shift;
+
+            result.push(current | last);
+            
+            last = (packedBytes[i] & upperMask) >> (7 - shift);
         }
         return result;
     }
