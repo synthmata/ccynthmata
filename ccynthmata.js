@@ -251,6 +251,31 @@ class Ccynthmata {
         return Ccynthmata.packBytes(serializedRaw);
     }
     
+    deserializePatch(packedData){
+        let data = Ccynthmata.unpackBytes(packedData);
+        console.log(data);
+        if(data[0] !== 0){
+            throw "unknown patch data version";
+        }
+        let patch = {};
+        let i = 1;
+        while(i < data.length - 2){
+            let channel = data[i++];
+            console.log(`Deserialize: channel is ${channel}`)
+            if(channel != 0x7f && channel > 0x0f){
+                throw `invalid midi channel number ${channel}`;
+            }
+            let count = data[i++] + 1;
+            console.log(`Deserialize: count is ${count}`)
+            patch[channel] = {};
+            for(let j = 0; j < count; j++){
+                patch[channel][data[i]] = data[i + 1];
+                i += 2;
+            }
+        }
+        return patch;
+    }
+
     static packBytes(unpackedBytes){
         // This seems like overkill, but as we have to go to Base64 and incur a 4/3 size increase and 
         //  there are likely limits on query-string lengh on some server configurations, this gets us
