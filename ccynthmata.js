@@ -162,7 +162,7 @@ class Ccynthmata {
     }
     
     sendCcMessage(ccElementDetails){
-        console.log("sendCcMessage")
+        //console.log("sendCcMessage")
         let channel = ccElementDetails.channel === undefined ? this.selectedMidiChannel : ccElementDetails.channel;
         if(ccElementDetails.ccMsbNumber !== undefined){
             this._sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccMsbNumber, value: (ccElementDetails.value >> 7) & 0x7f});
@@ -176,7 +176,7 @@ class Ccynthmata {
             options.ccNumber & 0x7f,
             options.value & 0x7f
         ];
-        console.log(paramChangeMessage);
+        //console.log(paramChangeMessage);
         this.selectedMidiPort.send(paramChangeMessage);
     }
 
@@ -191,7 +191,6 @@ class Ccynthmata {
             }
             // if we have multiple controls colliding on channel/cc the behaviour will be to use the one latest in the DOM - this is an arbitrary decision because it's
             // less code to do it that way
-            console.log(ccDetails);
             if(ccDetails.ccLsbNumber !== undefined){
                 
                 // this should always be here, but I'm being slightly more cautious because messing up the serialization will make me sad.
@@ -261,12 +260,12 @@ class Ccynthmata {
         let i = 1;
         while(i < data.length - 2){
             let channel = data[i++];
-            console.log(`Deserialize: channel is ${channel}`)
+            //console.log(`Deserialize: channel is ${channel}`)
             if(channel != 0x7f && channel > 0x0f){
                 throw `invalid midi channel number ${channel}`;
             }
             let count = data[i++] + 1;
-            console.log(`Deserialize: count is ${count}`)
+            //console.log(`Deserialize: count is ${count}`)
             patch[channel] = {};
             for(let j = 0; j < count; j++){
                 patch[channel][data[i]] = data[i + 1];
@@ -274,6 +273,61 @@ class Ccynthmata {
             }
         }
         return patch;
+    }
+
+    setCcValue(ccControl, value, isMsb=false){
+        if(ccControl.classList.contains(MIDI_CC_PARAM_CLASS)){
+            let currentValue = parseInt(ccControl.value);
+            if(isMsb){
+                currentValue &= 0x7F;
+                ccControl.value = currentValue | ((value & 0x7f) << 7)
+            }else{
+                currentValue &= 0x3f80;
+                ccControl.value = currentValue | (value & 0x7f);
+            }
+            
+        }else if(ccControl.classList.contains(MIDI_CC_TOTAL_CLASS)){
+            // TODO: get them all, sort them descending, tick them if needed
+        }
+    }
+
+    applyPatch(patch){
+        // input should be in the same format as the output from collectPatch()
+        // this is useful to know - if you wanted to plonk the result of a JSON
+        // response from a server into the interface - this is your doorway in
+
+        // we get all the controls and look them up in the patch rather than the other way around
+        let missCount = 0;
+        for(let ccControl of this.getCcElements()){
+            let details = this.getCcElementDetails(ccControl);
+            let channel = details.channel !== undefined ? details.channel : 0x7f;
+            if(!(channel in patch)){
+                console.log(`Couldn't get channel ${channel} from patch`);
+                missCount++;
+                continue;
+            }
+            if(details.ccLsbNumber !== undefined){
+                let lsbValue = patch[channel][details.ccLsbNumber];
+                if(lsbValue === undefined){
+                    console.log(`couldn't get cc ${details.ccLsbNumber} for channel ${channel}`);
+                    missCount++;
+                }else{
+                    this.setCcValue(ccControl, lsbValue);
+                }
+            }
+
+            if(details.ccMsbNumber !== undefined){
+                let msbValue = patch[channel][details.ccMsbNumber];
+                if(msbValue === undefined){
+                    console.log(`couldn't get cc ${details.ccMsbNumber} for channel ${channel}`);
+                    missCount++;
+                }else{
+                    this.setCcValue(ccControl, msbValue, true);
+                }
+            }
+            
+        }
+        console.log(`Missed ${missCount} values.`)
     }
 
     static packBytes(unpackedBytes){

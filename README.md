@@ -9,3 +9,4 @@ Pretty much everything right now...
 In particular:
 * Try every option to attach events in order of "usefulness" (oninput first, if notpresent, onchange etc.) in tryAttachParameterChangeHandler
 * Patch serialization/deserialization
+ * in particular deserializing the midicctotal elements
