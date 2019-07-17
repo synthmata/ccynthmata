@@ -10,3 +10,6 @@ In particular:
 * Try every option to attach events in order of "usefulness" (oninput first, if notpresent, onchange etc.) in tryAttachParameterChangeHandler
 * Patch serialization/deserialization
  * in particular deserializing the midicctotal elements
+
+## Known Issues / Notes / Caveats
+* midiCcTotal only works properly for checkable controls (radiobuttons are the obvious use case). This may be a feature rather than a bug...

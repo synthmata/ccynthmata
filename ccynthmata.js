@@ -128,6 +128,13 @@ class Ccynthmata {
         return false;
     }
     
+    getTotallerElements(ccLsb, channel){
+        channel = channel === undefined ? null : channel;
+        return [...this._interfaceRoot.querySelectorAll(MIDI_CC_TOTAL_CLASS_SELECTOR)]
+                .filter(
+                    x => parseInt(x.dataset.cclsb) === ccLsb && ((channel === null && !x.dataset.midichannel) || channel === parseInt(x.dataset.midichannel) - 1));
+    }
+
     getCcElementDetails(ele){
         let ccLsb = "cclsb" in ele.dataset ? parseInt(ele.dataset.cclsb) : undefined;
         let ccMsb = "ccmsb" in ele.dataset ? parseInt(ele.dataset.ccmsb) : undefined;
@@ -140,10 +147,8 @@ class Ccynthmata {
         }else if (ele.classList.contains(MIDI_CC_TOTAL_CLASS)){
             // we need to total everything for this change's cc number and channel then send it all at once
             // currently, for simplicity, this type only supports single byte cc
-            //let toTotal = [...document.getElementsByClassName(MIDI_CC_TOTAL_CLASS)]
-            let toTotal = [...this._interfaceRoot.querySelectorAll(MIDI_CC_TOTAL_CLASS_SELECTOR)]
-                .filter(
-                    x => parseInt(x.dataset.cclsb) === ccLsb && ((overrideMidiChannel === null && !x.dataset.midichannel) || overrideMidiChannel === parseInt(x.dataset.midichannel) - 1));
+            
+            let toTotal = this.getTotallerElements(ccLsb, overrideMidiChannel);
             let ccSum = toTotal.reduce((sum, x) => sum + ("checked" in x ? (x.checked ? parseInt(x.value) : 0) : parseInt(value)), 0);
             
             return {channel: overrideMidiChannel, ccLsbNumber: ccLsb, value: ccSum & 0x7f};
@@ -176,7 +181,7 @@ class Ccynthmata {
             options.ccNumber & 0x7f,
             options.value & 0x7f
         ];
-        //console.log(paramChangeMessage);
+        console.log(paramChangeMessage);
         this.selectedMidiPort.send(paramChangeMessage);
     }
 
@@ -287,7 +292,30 @@ class Ccynthmata {
             }
             
         }else if(ccControl.classList.contains(MIDI_CC_TOTAL_CLASS)){
-            // TODO: get them all, sort them descending, tick them if needed
+            // Note/Known Issue: currently this will only work for checkable controls
+            
+            let toTotal = this.getTotallerElements(
+                parseInt(ccControl.dataset.cclsb), parseInt(ccControl.dataset.midichannel) - 1).filter(x => "checked" in x);
+            toTotal.sort((a, b) => parseInt(b.value) - parseInt(a.value));
+            
+            let appliedNames = new Set(); // used to stop touching radiobuttons in a group once the highest applicable has been set
+            for(let totee of toTotal){
+                let controlValue = parseInt(totee.value)
+                if(value >= controlValue){
+                    if(!totee.name || !appliedNames.has(totee.name)){  // handling radiobuttons
+                        totee.checked = true;
+                        value -= controlValue;
+                        if(totee.name){
+                            appliedNames.add(totee.name);
+                        }
+                    }
+                }else{
+                    totee.checked = false;
+                }
+            }
+            if(value != 0){
+                console.log(`Warning: didn't exhaust the total when applying to midiCcTotal controls for cc ${ccControl.dataset.cclsb}`);
+            }
         }
     }
 
