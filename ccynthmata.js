@@ -7,6 +7,7 @@ const MIDI_CC_TOTAL_CLASS = "midicctotal";
 const MIDI_CC_PARAM_CLASS_SELECTOR = "." + MIDI_CC_PARAM_CLASS;
 const MIDI_CC_TOTAL_CLASS_SELECTOR = "." + MIDI_CC_TOTAL_CLASS;
 const DEFAULT_SETUP_PANEL_SELECTOR = "#midiSetup";
+const DEFAULT_SAVELOAD_PANEL_SELECTOR = "#saveLoadPanel";
 
 const STANDARD_CC_CONTROL_SELECTORS = [MIDI_CC_PARAM_CLASS_SELECTOR, MIDI_CC_TOTAL_CLASS_SELECTOR];
 
@@ -20,6 +21,9 @@ class Ccynthmata {
         this._setupPanelElement = options.setupPanelElement 
             ? options.setupPanelElement 
             : this._interfaceRoot.querySelector(DEFAULT_SETUP_PANEL_SELECTOR);
+        this._saveLoadPanelElement = options.saveLoadPanelElement 
+            ? options.saveLoadPanelElement 
+            : this._interfaceRoot.querySelector(DEFAULT_SAVELOAD_PANEL_SELECTOR);
         this.midi = null;          // global MIDIAccess object
         this.midiOutPorts = null;
         this.selectedMidiPort = null;
@@ -40,6 +44,7 @@ class Ccynthmata {
                 }
                 this._setupParameterControls();
                 this._buildSetupPanel();
+                this._buildSaveLoadSharePanel();
                 this.loadSharablePatchLink();
             }, this._onMIDIFailure
             )
@@ -99,6 +104,52 @@ class Ccynthmata {
         this.selectedMidiChannel = 0;
     
         this._setupPanelElement.appendChild(former);
+    }
+
+    _buildSaveLoadSharePanel() {
+        let container = document.getElementById("saveLoadShare");
+    
+        // let loadInput = document.createElement("input");
+        // loadInput.setAttribute("type", "file");
+        // loadInput.id = "sysexFileChooser"
+        // loadInput.onchange = checkSysexFileLoad;
+        // this._saveLoadPanelElement.appendChild(loadInput);
+    
+        // let loadButton = document.createElement("button");
+        // loadButton.id = "sysexLoadButton";
+        // loadButton.textContent = "Load Sysex";
+        // loadButton.setAttribute("disabled", true);
+        // loadButton.onclick = tryLoadSysex;
+        // this._saveLoadPanelElement.appendChild(loadButton);
+    
+        let saveButton = document.createElement("button");
+        saveButton.id = "sysexSaveButton";
+        saveButton.textContent = "Save Sysex";
+        saveButton.onclick = (ev) => {this.savePatch()};
+        this._saveLoadPanelElement.appendChild(saveButton); 
+    
+        // TODO: think about init patches
+        // let initPatchButton = document.createElement("button");
+        // initPatchButton.id = "initPatchButton";
+        // initPatchButton.textContent = "Init Patch";
+        // initPatchButton.onclick = function(){
+        //     loadInitPatch();
+        // }
+        // this._saveLoadPanelElement.appendChild(initPatchButton);
+    
+        let sharableLinkTextbox = document.createElement("textarea");
+        sharableLinkTextbox.id = "sharableLinkTextbox";
+        sharableLinkTextbox.setAttribute("readonly", true);
+        
+        let createSharableLinkButton = document.createElement("button");
+        createSharableLinkButton.id = "createSharableLinkButton";
+        createSharableLinkButton.textContent = "Create Sharable Patch Link";
+        createSharableLinkButton.onclick = () =>{
+            sharableLinkTextbox.value = this.makeSharablePatchLink();
+        }
+    
+        this._saveLoadPanelElement.appendChild(createSharableLinkButton);
+        this._saveLoadPanelElement.appendChild(sharableLinkTextbox);
     }
 
     _setupParameterControls() {
