@@ -176,17 +176,39 @@ class Ccynthmata {
         if(ccElementDetails.ccMsbNumber !== undefined){
             this._sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccMsbNumber, value: (ccElementDetails.value >> 7) & 0x7f});
         }
-        this._sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccLsbNumber, value: ccElementDetails.value & 0x7f});
+        if(ccElementDetails.ccLsbNumber !== undefined){
+            this._sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccLsbNumber, value: ccElementDetails.value & 0x7f});
+        }
+    }
+
+    buildCcMessage(ccElementDetails){
+        let result = [];
+
+        let channel = ccElementDetails.channel === undefined ? this.selectedMidiChannel : ccElementDetails.channel;
+        if(ccElementDetails.ccMsbNumber !== undefined){
+            for(let x of this._sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccMsbNumber, value: (ccElementDetails.value >> 7) & 0x7f}, true)){
+                result.push(x);
+            }
+        }
+        if(ccElementDetails.ccLsbNumber !== undefined){
+            for(let x of this._sendCcMessage({channel: channel, ccNumber: ccElementDetails.ccLsbNumber, value: ccElementDetails.value & 0x7f}, true)){
+                result.push(x);
+            }
+        }
+        return result;
     }
     
-    _sendCcMessage(options){
+    _sendCcMessage(options, returnOnly=false){
         let paramChangeMessage = [
             0xb0 | (options.channel & 0x0f),
             options.ccNumber & 0x7f,
             options.value & 0x7f
         ];
         console.log(paramChangeMessage);
-        this.selectedMidiPort.send(paramChangeMessage);
+        if(!returnOnly){
+            this.selectedMidiPort.send(paramChangeMessage);
+        }
+        return paramChangeMessage;
     }
 
     collectPatch(){
@@ -394,6 +416,44 @@ class Ccynthmata {
         if(searchParams.has("n") && patchNameEle !== undefined){
             patchNameEle.value = searchParams.get("n");
         }
+    }
+
+    sendCurrentPatch(){
+        for(let ccControl of this.getCcElements()){
+            // TODO: if something is going to need throttling, it's this. Need to investigate and test.
+            let details = this.getCcElementDetails(ccControl);
+            this.sendCcMessage(details);
+        }
+    }
+
+    savePatch(){
+        let fullDump = [];
+        for(let ccControl of this.getCcElements()){
+            // TODO: if something is going to need throttling, it's this. Need to investigate and test.
+            let details = this.getCcElementDetails(ccControl);
+            for(let x of this.buildCcMessage(details)){
+                fullDump.push(x);
+            }
+        }
+
+        let buffer = new Uint8ClampedArray(new ArrayBuffer(fullDump.length));
+        for (let i = 0; i < fullDump.length; i++) {
+            buffer[i] = fullDump[i];
+        }
+
+        var file = new Blob([buffer], { type: "application/octet-binary" });
+        let a = document.createElement("a");
+        let url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = `patch_${new Date().toISOString()}.midi`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+
+        return fullDump;
     }
 
     static packBytes(unpackedBytes){
