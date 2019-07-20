@@ -28,6 +28,7 @@
     <div class="controlpanel">
         <h2>Part 1</h2>
         <div class="controlflexlayout">
+            <!--Part 1 Layer 1-->
             <div class="controlitemgroup">
                 <h3>Layer 1</h3>
                 <div>
@@ -133,6 +134,119 @@
                         <input 
                             class="midiccparam" id="p1modrate1"  
                             data-midiChannel="1" data-cclsb="46"
+                            max="127" min="0" type="range" />
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <!--Part 1 Layer 2-->
+        <div class="controlflexlayout">
+            <div class="controlitemgroup">
+                <h3>Layer 2</h3>
+                <div>
+                    <div>
+                        <h4>Voice</h4>
+                        <label for="p1select2wavesine">Sine</label>
+                        <input 
+                            type="radio" name="p1select2wave" value="0" checked
+                            class="midicctotal" id="p1select2wavesine"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2wavesaw">Saw</label>
+                        <input 
+                            type="radio" name="p1select2wave" value="26" 
+                            class="midicctotal" id="p1select2wavesaw"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2wavenoisehp">Noise (HP)</label>
+                        <input 
+                            type="radio" name="p1select2wave" value="52" 
+                            class="midicctotal" id="p1select2wavenoisehp"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2wavenoiselp">Noise (LP)</label>
+                        <input 
+                            type="radio" name="p1select2wave" value="77" 
+                            class="midicctotal" id="p1select2wavenoiselp"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2wavenoisebp">Noise (BP)</label>
+                        <input 
+                            type="radio" name="p1select2wave" value="103" 
+                            class="midicctotal" id="p1select2wavenoisebp"
+                            data-midiChannel="1" data-cclsb="15"/>
+                    </div>
+                    <div>
+                        <label for="p1select2modexp">Exp</label>
+                        <input 
+                            type="radio" name="p1select2mod" value="0" checked
+                            class="midicctotal" id="p1select2modexp"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2modtri">Tri</label>
+                        <input 
+                            type="radio" name="p1select2mod" value="9" 
+                            class="midicctotal" id="p1select2modtri"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2modrand">Random</label>
+                        <input 
+                            type="radio" name="p1select2mod" value="18" 
+                            class="midicctotal" id="p1select2modrand"
+                            data-midiChannel="1" data-cclsb="15"/>
+                    </div>
+                    <div>
+                        <label for="p1select2envad">AD</label>
+                        <input 
+                            type="radio" name="p1select2env" value="0" checked
+                            class="midicctotal" id="p1select2envad"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2envexp">Exp</label>
+                        <input 
+                            type="radio" name="p1select2env" value="3" 
+                            class="midicctotal" id="p1select2envexp"
+                            data-midiChannel="1" data-cclsb="15"/>
+                        <label for="p1select2envmulti">Multi</label>
+                        <input 
+                            type="radio" name="p1select2env" value="6" 
+                            class="midicctotal" id="p1select2envmulti"
+                            data-midiChannel="1" data-cclsb="15"/>
+                    </div>
+                    <div class="controller">
+                        <label for="p1level2">Level</label>
+                        <input 
+                            class="midiccparam" id="p1level2"  
+                            data-midiChannel="1" data-cclsb="17"
+                            max="127" min="0" type="range" >
+                    </div>
+                    <div class="controller">
+                        <label for="p1pitch2">Pitch</label>
+                        <input 
+                            class="midiccparam" id="p1pitch2"  
+                            data-midiChannel="1" data-cclsb="27"
+                            max="127" min="0" type="range" />
+                    </div>
+                    <div class="controller">
+                        <label for="p1egattack2">EG Attack</label>
+                        <input 
+                            class="midiccparam" id="p1egattack2"  
+                            data-midiChannel="1" data-cclsb="21"
+                            max="127" min="0" type="range" />
+                    </div>
+                    <div class="controller">
+                        <label for="p1egrelease2">EG Release</label>
+                        <input 
+                            class="midiccparam" id="p1egrelease2"  
+                            data-midiChannel="1" data-cclsb="24"
+                            max="127" min="0" type="range" />
+                    </div>
+                    <div class="controller">
+                        <label for="p1modamt2">Mod Amount</label>
+                        <input 
+                            class="midiccparam" id="p1modamt2"  
+                            data-midiChannel="1" data-cclsb="30"
+                            max="127" min="0" type="range" />
+                    </div>
+                    <div class="controller">
+                        <label for="p1modrate2">Mod Rate</label>
+                        <input 
+                            class="midiccparam" id="p1modrate2"  
+                            data-midiChannel="1" data-cclsb="47"
                             max="127" min="0" type="range" />
                     </div>
                     
