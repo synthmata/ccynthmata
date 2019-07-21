@@ -63,8 +63,8 @@ If you have 14-bit CCs specify the MSB CC with `data-ccmsb`
 For a more complete working example see my: [Volca Drum Editor](https://github.com/synthmata/synthmata.github.io/tree/master/volca-drum)
 
 ## TODO:
-Write the rest of the documentation
-Parameter display.
+* Write the rest of the documentation
+* Parameter display.
 
 ## Known Issues / Notes / Caveats
 * midiCcTotal only works properly for checkable controls (radiobuttons are the obvious use case). This may be a feature rather than a bug...
