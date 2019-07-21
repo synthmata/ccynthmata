@@ -6,7 +6,7 @@
 ## Quickstart:
 Include the library, initialise it during onload:
 
-```
+```html
 <!DOCTYPE html>
 <html>
     <head>
@@ -25,7 +25,7 @@ Include the library, initialise it during onload:
 
 Add some `div`s for the standard interface elements to be added to:
 
-```
+```html
     <div class="controlitemgroup" id="midiSetup">
         <h3>Midi Device Setup</h3>
     </div>
@@ -36,7 +36,7 @@ Add some `div`s for the standard interface elements to be added to:
 
 Add controls with the `midiccparam` class, give it a cc number to control with the `data-cclsb` attribute:
 
-```
+```html
 <input 
     class="midiccparam" data-cclsb="63"
     max="127" min="0" type="range" >
@@ -44,7 +44,7 @@ Add controls with the `midiccparam` class, give it a cc number to control with t
 
 If you need to target a specific channel, rather than the one selected in the interface use `data-midiChannel`
 
-```
+```html
 <input 
     class="midiccparam" data-cclsb="63"
     data-midiChannel="1" 
@@ -53,11 +53,11 @@ If you need to target a specific channel, rather than the one selected in the in
 
 If you have 14-bit CCs specify the MSB CC with `data-ccmsb`
 
-```
+```html
 <input 
     class="midiccparam" data-cclsb="63" data-ccmsb="31"
     data-midiChannel="1" 
-    max="127" min="0" type="range" >
+    max="16383" min="0" type="range" >
 ```
 
 For a more complete working example see my: [Volca Drum Editor](https://github.com/synthmata/synthmata.github.io/tree/master/volca-drum)
