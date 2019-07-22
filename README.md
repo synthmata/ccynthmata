@@ -4,7 +4,7 @@
  *This is still very much in beta right now - although I don't expect to make breaking changes at this point, I'm not making promises*
 
 ## Quickstart:
-Include the library, initialise it during onload:
+Include the library, initialise it during `onload`:
 
 ```html
 <!DOCTYPE html>
@@ -34,7 +34,7 @@ Add some `div`s for the standard interface elements to be added to:
     </div>
 ```
 
-Add controls with the `midiccparam` class, give it a cc number to control with the `data-cclsb` attribute:
+Add controls with the `midiccparam` class, give it a CC number to control with the `data-cclsb` attribute:
 
 ```html
 <input 
@@ -60,11 +60,11 @@ If you have 14-bit CCs specify the MSB CC with `data-ccmsb`
     max="16383" min="0" type="range" >
 ```
 
-For a more complete working example see my: [Volca Drum Editor](https://github.com/synthmata/synthmata.github.io/tree/master/volca-drum)
+For a more complete working example see my [Volca Drum Editor](https://github.com/synthmata/synthmata.github.io/tree/master/volca-drum)
 
 ## TODO:
 * Write the rest of the documentation
 * Parameter display.
 
 ## Known Issues / Notes / Caveats
-* midiCcTotal only works properly for checkable controls (radiobuttons are the obvious use case). This may be a feature rather than a bug...
+* midiCcTotal only works properly for checkable controls (radio-buttons are the obvious use-case). This may be a feature rather than a bug...
