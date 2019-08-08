@@ -62,6 +62,14 @@ If you have 14-bit CCs specify the MSB CC with `data-ccmsb`
 
 For a more complete working example see my [Volca Drum Editor](https://github.com/synthmata/synthmata.github.io/tree/master/volca-drum)
 
+## Constructor Options
+The `Ccynthmata` contructor optionally takes an `options` object as an argument, which may contain the following options:
+* `interfaceRoot`: element for the root of the interface (default: `document`)
+* `setupPanelElement`: element for the midi setup panel (default: the element that matches `#midiSetup`)
+* `saveLoadPanelElement`: element for the save/share panel (default: the element that matches `#saveLoadPanel`)
+* `initPatch`: intial patch, in the same format as the output of `collectPatch()` (default: `null`)
+
+
 ## TODO:
 * Write the rest of the documentation
 * Parameter display.
