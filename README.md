@@ -65,8 +65,10 @@ For a more complete working example see my [Volca Drum Editor](https://github.co
 ## Constructor Options
 The `Ccynthmata` contructor optionally takes an `options` object as an argument, which may contain the following options:
 * `interfaceRoot`: element for the root of the interface (default: `document`)
-* `setupPanelElement`: element for the midi setup panel (default: the element that matches `#midiSetup`)
-* `saveLoadPanelElement`: element for the save/share panel (default: the element that matches `#saveLoadPanel`)
+* `setupPanelElement`: element for the midi setup panel (default: the element that matches `#midiSetup` within `interfaceRoot`)
+* `saveLoadPanelElement`: element for the save/share panel (default: the element that matches `#saveLoadPanel` within `interfaceRoot`)
+* `parameterDisplayElement`: element for parameter value display (default: the element that matches `#ccParameterDisplay` within `interfaceRoot`)
+* `autoHideParameterDisplay`: hide the parameter display when it is not being shown (after a timeout) (default: `false`)
 * `initPatch`: intial patch, in the same format as the output of `collectPatch()` (default: `null`)
 
 
