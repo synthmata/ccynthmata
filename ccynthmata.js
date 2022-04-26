@@ -2,20 +2,26 @@
 (function(r){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=r()}else if(typeof define==="function"&&define.amd){define([],r)}else{var e;if(typeof window!=="undefined"){e=window}else if(typeof global!=="undefined"){e=global}else if(typeof self!=="undefined"){e=self}else{e=this}e.base64js=r()}})(function(){var r,e,t;return function r(e,t,n){function o(i,a){if(!t[i]){if(!e[i]){var u=typeof require=="function"&&require;if(!a&&u)return u(i,!0);if(f)return f(i,!0);var d=new Error("Cannot find module '"+i+"'");throw d.code="MODULE_NOT_FOUND",d}var c=t[i]={exports:{}};e[i][0].call(c.exports,function(r){var t=e[i][1][r];return o(t?t:r)},c,c.exports,r,e,t,n)}return t[i].exports}var f=typeof require=="function"&&require;for(var i=0;i<n.length;i++)o(n[i]);return o}({"/":[function(r,e,t){"use strict";t.byteLength=c;t.toByteArray=v;t.fromByteArray=s;var n=[];var o=[];var f=typeof Uint8Array!=="undefined"?Uint8Array:Array;var i="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";for(var a=0,u=i.length;a<u;++a){n[a]=i[a];o[i.charCodeAt(a)]=a}o["-".charCodeAt(0)]=62;o["_".charCodeAt(0)]=63;function d(r){var e=r.length;if(e%4>0){throw new Error("Invalid string. Length must be a multiple of 4")}return r[e-2]==="="?2:r[e-1]==="="?1:0}function c(r){return r.length*3/4-d(r)}function v(r){var e,t,n,i,a;var u=r.length;i=d(r);a=new f(u*3/4-i);t=i>0?u-4:u;var c=0;for(e=0;e<t;e+=4){n=o[r.charCodeAt(e)]<<18|o[r.charCodeAt(e+1)]<<12|o[r.charCodeAt(e+2)]<<6|o[r.charCodeAt(e+3)];a[c++]=n>>16&255;a[c++]=n>>8&255;a[c++]=n&255}if(i===2){n=o[r.charCodeAt(e)]<<2|o[r.charCodeAt(e+1)]>>4;a[c++]=n&255}else if(i===1){n=o[r.charCodeAt(e)]<<10|o[r.charCodeAt(e+1)]<<4|o[r.charCodeAt(e+2)]>>2;a[c++]=n>>8&255;a[c++]=n&255}return a}function l(r){return n[r>>18&63]+n[r>>12&63]+n[r>>6&63]+n[r&63]}function h(r,e,t){var n;var o=[];for(var f=e;f<t;f+=3){n=(r[f]<<16)+(r[f+1]<<8)+r[f+2];o.push(l(n))}return o.join("")}function s(r){var e;var t=r.length;var o=t%3;var f="";var i=[];var a=16383;for(var u=0,d=t-o;u<d;u+=a){i.push(h(r,u,u+a>d?d:u+a))}if(o===1){e=r[t-1];f+=n[e>>2];f+=n[e<<4&63];f+="=="}else if(o===2){e=(r[t-2]<<8)+r[t-1];f+=n[e>>10];f+=n[e>>4&63];f+=n[e<<2&63];f+="="}i.push(f);return i.join("")}},{}]},{},[])("/")});
 // End: Base64-js
 
-const CCYNTHMATA_VERSION = "0.3.0";
+const CCYNTHMATA_VERSION = "0.4.0";
 
 const MIDI_CC_PARAM_CLASS = "midiccparam";
 const MIDI_CC_TOTAL_CLASS = "midicctotal";
+const MIDI_SYSEX_CLASS = "midisysexparam";
 const MIDI_CC_PARAM_CLASS_SELECTOR = "." + MIDI_CC_PARAM_CLASS;
 const MIDI_CC_TOTAL_CLASS_SELECTOR = "." + MIDI_CC_TOTAL_CLASS;
+const MIDI_SYSEX_CLASS_SELECTOR = "." + MIDI_SYSEX_CLASS;
 const DEFAULT_SETUP_PANEL_SELECTOR = "#midiSetup";
 const DEFAULT_SAVELOAD_PANEL_SELECTOR = "#saveLoadPanel";
 const DEFAULT_PARAMETER_DISPLAY_SELECTOR = "#ccParameterDisplay";
 
-const STANDARD_CC_CONTROL_SELECTORS = [MIDI_CC_PARAM_CLASS_SELECTOR, MIDI_CC_TOTAL_CLASS_SELECTOR];
+const CC_CLASSES = new Set([MIDI_CC_PARAM_CLASS, MIDI_CC_TOTAL_CLASS]);
+const SYSEX_CLASSES = new Set([MIDI_SYSEX_CLASS]);
+const STANDARD_MIDI_CONTROL_SELECTORS = [MIDI_CC_PARAM_CLASS_SELECTOR, MIDI_CC_TOTAL_CLASS_SELECTOR, MIDI_SYSEX_CLASS_SELECTOR];
 
 const VALUE_DISPLAY_TIMEOUT_MS = 1000;
 //const paramThrottleTimerMs = 30;  //if we need it
+
+const NOTHEX_RE = new RegExp("[^0-9A-F]", "ig");
 
 class Ccynthmata {
     constructor(options){
@@ -38,13 +44,28 @@ class Ccynthmata {
         this._initPatch = options.initPatch 
             ? options.initPatch 
             : null;
+        this._sysexManufacturer = options.sysexManufacturer
+            ? [options.sysexManufacturer]
+            : [];
+        this._sysexModel = options.sysexModel
+            ? [options.sysexModel]
+            : [];
+        this._sysexCommonPrefix = options.sysexCommonPrefix
+            ? options.sysexCommonPrefix
+            : [];
+        this._sysexCommonSuffix = options.sysexCommonSuffix
+            ? options.sysexCommonSuffix
+            : [];
+        this._sysexValueConverter = options.sysexValueConverter
+            ? options.sysexValueConverter
+            : (value, element) => [value];
         
         
         this.midi = null;          // global MIDIAccess object
         this.midiOutPorts = null;
         this.selectedMidiPort = null;
         this.selectedMidiChannel = null;
-        this._ccControlSelectors = Array(...STANDARD_CC_CONTROL_SELECTORS);
+        this._midiControlSelectors = Array(...STANDARD_MIDI_CONTROL_SELECTORS);
         this._valueDisplayTimeout = null;
     }
 
@@ -76,6 +97,9 @@ class Ccynthmata {
     }
     
     _buildSetupPanel() {
+        if(!this._setupPanelElement){
+            throw "No setup panel defined - please create an element with id midiSetup (or set an alternative ID when passing the options to the contructor)";
+        }
         // Port selection.
         let former = document.createElement("form");
         former.id = "midiSetupForm"
@@ -127,6 +151,10 @@ class Ccynthmata {
     }
 
     _buildSaveLoadSharePanel() {
+        if(!this._saveLoadPanelElement){
+            console.log("Warning: no save/load panel defined!");
+            return;
+        }
         // let loadInput = document.createElement("input");
         // loadInput.setAttribute("type", "file");
         // loadInput.id = "sysexFileChooser"
@@ -190,9 +218,9 @@ class Ccynthmata {
     }
 
     *getCcElements(){
-        for(let ccSelector of this._ccControlSelectors){
+        for(let midiSelector of this._midiControlSelectors){
             //for (let ccControl of this._interfaceRoot.getElementsByClassName(ccClass)) {
-                for (let ccControl of this._interfaceRoot.querySelectorAll(ccSelector)) {
+                for (let ccControl of this._interfaceRoot.querySelectorAll(midiSelector)) {
                 yield ccControl;
             }
         }
@@ -267,11 +295,35 @@ class Ccynthmata {
         }
     }
 
+    _isCCElement(ele){
+        for(let c of ele.classList){
+            if(CC_CLASSES.has(c)){
+                return true
+            }
+        }
+        return false;
+    }
+
+    _isSysexElement(ele){
+        for(let c of ele.classList){
+            if(SYSEX_CLASSES.has(c)){
+                return true
+            }
+        }
+        return false;
+    }
+
     _handleValueChange(event){
         if (this.selectedMidiChannel != null && this.selectedMidiPort != null) {
             let ele = event.target;
-            let ccElementDetails = this.getCcElementDetails(ele);
-            this.sendCcMessage(ccElementDetails);
+            if(this._isCCElement(ele)){
+                let ccElementDetails = this.getCcElementDetails(ele);
+                this.sendCcMessage(ccElementDetails);
+            }else if(this._isSysexElement(ele)){
+                let sysexBody = this.buildSysexMessage(ele);
+                console.log(sysexBody);
+                this.selectedMidiPort.send(sysexBody);
+            }
         }
     }
     
@@ -315,6 +367,41 @@ class Ccynthmata {
         }
         return paramChangeMessage;
     }
+
+    hexToBytes(hexString){
+        let hex = hexString.replace(/\s/g, "");
+        if(hex.length % 2 !== 0){
+            throw "Hex string was not an even number of hex characters long";
+        }
+        let bytes = [];
+        for(let i = 0; i < hex.length; i += 2){
+            bytes.push(parseInt(hex.substr(i, 2), 16));
+        }
+        return bytes;
+    }
+
+    buildSysexMessage(sysexElement){
+        let prefix = sysexElement.dataset.sysexprefix ? this.hexToBytes(sysexElement.dataset.sysexprefix) : [];
+        let value = this._sysexValueConverter(parseInt(sysexElement.value), sysexElement);
+        let msg = [
+            ...this._sysexManufacturer,
+            ...this._sysexModel,
+            ...this._sysexCommonPrefix,
+            ...prefix,
+            ...value,
+            ...this._sysexCommonSuffix,
+        ]
+        
+        for(let i = 0; i < msg.length; i++){
+            if(msg[i] < 0 || msg[i] > 0x7f){
+                console.log(msg);
+                throw `invalid data in sysex at index: ${i}`;
+            }
+        }
+        
+        return [0xf0, ...msg, 0xf7];
+    }
+
 
     collectPatch(){
         // collects all the parameters into an object; up to 17 keys: one for each channel and one for the user specified channel
